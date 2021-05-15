@@ -1,36 +1,14 @@
-//
-//  main.c
-//  scanner
-//
-//  Created by jungmin lim on 4/1/21.
-//
-#define _CRT_SECURE_NO_WARNINGS
+#include "globals.h"
+#include "util.h"
+#include "scan.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#define TRUE 1
-#define FALSE 0
-
-#define MAXTOKENLEN 45
-#define MAXRESERVED 6
 #define BUFLEN 256
 
 typedef enum {
     START, CHECKCOMMENT, INCOMMENT,BREAKCOMMENT,
     INID, INNUM, ERRORSTATE, INSYMBOL, DONE
 }StateType;
-
-typedef enum {
-    ENDFILE, ERROR,
-    IF, ELSE, INT, RETURN, VOID, WHILE,
-    ID, NUM,
-    ASSIGN, PLUS, MINUS, TIMES, OVER,
-    LESSTHAN, LESSEQTHAN, GREATERTHAN, GREATEREQTHAN,
-    EQ, NEQ, SEMI, COMMA,
-    LRNDBRKT, RRNDBRKT, LCURLBRKT, RCURLBRKT, LSQRBRKT, RSQRBRKT,
-}TokenType;
 
 typedef struct _Keyword{
     char* str;
@@ -43,36 +21,13 @@ static Keyword keyWords[MAXRESERVED] = {
 };
 
 char tokenString[MAXTOKENLEN+1];
+
 static char lineBuf[BUFLEN];
 static int linepos = 0;
-static int lineno = 0;
 static int bufsize = 0;
 static int EOF_flag = FALSE;
 
-static int isdigit(int c);
-static int isletter(int c);
-static int getNextChar(FILE *inputfile, FILE *outputfile);
-static void ungetNextChar(void);
-static TokenType keywordLookup(char *s);
-static void printToken(FILE *outputfile, TokenType currentToken);
-TokenType getToken(FILE *inputfile, FILE *outputfile);
-
-int main(int argc, const char * argv[]) {
-    FILE *inputFile, *outputFile;
-    TokenType result;
-    // open inputfile & outputfile
-    inputFile = fopen(argv[1], "r");
-    outputFile = fopen(argv[2], "w");
-    
-    while((result = getToken(inputFile, outputFile)) != ENDFILE) {
-        // keep getting token until EOF
-    }
-    // close inputfile & outputfile
-    fclose(inputFile);
-    fclose(outputFile);
-}
-
-static int isdigit(int c) {
+static int isDigit(int c) {
     c = c - '0';
     if((0 <= c ) && (c <= 9)) {
         return TRUE;
@@ -80,14 +35,14 @@ static int isdigit(int c) {
     return FALSE;
 }
 
-static int isletter(int c) {
+static int isLetter(int c) {
     if((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'))) {
         return TRUE;
     }
     return FALSE;
 }
 
-static int getNextChar(FILE *inputfile, FILE *outputfile) {
+static int getNextChar(void) {
     if(!(linepos < bufsize)) {
         lineno++;
         if(fgets(lineBuf, BUFLEN-1, inputfile)) {
@@ -124,72 +79,26 @@ static TokenType keywordLookup(char *s) {
     return ID;
 }
 
-static void printToken(FILE *outputfile, TokenType currentToken) {
-    switch(currentToken) {
-        case IF:
-        case ELSE:
-        case INT:
-        case VOID:
-        case RETURN:
-        case WHILE:
-            fprintf(outputfile, "keyword: %s\n", tokenString);
-        break;
-        case ID:
-            fprintf(outputfile, "ID, name= %s\n", tokenString);
-        break;
-        case NUM: 
-            fprintf(outputfile, "NUM, var= %s\n", tokenString);
-        break;
-        case ASSIGN:
-        case PLUS: 
-        case MINUS: 
-        case TIMES: 
-        case OVER:
-        case LESSTHAN: 
-        case LESSEQTHAN: 
-        case GREATERTHAN: 
-        case GREATEREQTHAN:
-        case EQ:
-        case NEQ:
-        case SEMI: 
-        case COMMA:
-        case LRNDBRKT: 
-        case RRNDBRKT:
-        case LCURLBRKT:
-        case RCURLBRKT:
-        case LSQRBRKT:
-        case RSQRBRKT:
-            fprintf(outputfile, "%s\n", tokenString);
-        break;
-        case ENDFILE:
-            fprintf(outputfile, "EOF\n");
-        break;
-        case ERROR:
-            fprintf(outputfile, "ERROR, No such token \"%s\"\n", tokenString);
-        break;
-    }
-}
-
-TokenType getToken(FILE *inputfile, FILE *outputfile) {
+TokenType getToken(void) {
     int tokenStringIndex = 0;
     TokenType currentToken;
     StateType state = START;
     int save;
 
     while(state != DONE) {
-        int c = getNextChar(inputfile, outputfile);
+        int c = getNextChar();
 
         switch(state) {
             // initial state
             case START:
                 save = TRUE;
                 // start scanning NUM token
-                if(isdigit(c)) {
+                if(isDigit(c)) {
                     state = INNUM;
                 }
                 
                 // start scanning ID or KEYWORD token
-                else if(isletter(c)) {
+                else if(isLetter(c)) {
                     state = INID;
                 }
                 
@@ -370,11 +279,11 @@ TokenType getToken(FILE *inputfile, FILE *outputfile) {
             // state for scanning letter for ID
             case INID:
                 // keep scanning if another letter comes in
-                if(isletter(c)) {
+                if(isLetter(c)) {
                     state = INID;
                 }
                 // move to ERRORID state if digit comes in
-                else if (isdigit(c)) {
+                else if (isDigit(c)) {
                     state = ERRORSTATE;
                 }
                 // return ID if any other character comes in
@@ -388,7 +297,7 @@ TokenType getToken(FILE *inputfile, FILE *outputfile) {
             // state for scanning letters and digits for error token
             case ERRORSTATE:
                 // keep scanning letters and digits
-                if(isletter(c) || isdigit(c)) {
+                if(isLetter(c) || isDigit(c)) {
                     state = ERRORSTATE;
                 }
                 // return error token if another character comes in
@@ -403,10 +312,10 @@ TokenType getToken(FILE *inputfile, FILE *outputfile) {
 
             // start of scanning NUM session
             case INNUM:
-                if(isdigit(c)) {
+                if(isDigit(c)) {
                     state = INNUM;
                 }
-                else if (isletter(c)) {
+                else if (isLetter(c)) {
                     state = ERRORSTATE;
                 }
                 else {
@@ -445,7 +354,7 @@ TokenType getToken(FILE *inputfile, FILE *outputfile) {
 
     // report scanned token
     fprintf(outputfile, "\t%d: ", lineno);
-    printToken(outputfile, currentToken);
+    printToken(currentToken, tokenString);
 
     return currentToken;
 }
