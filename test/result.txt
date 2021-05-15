@@ -1,0 +1,57 @@
+   1: a=10;
+	1: ID, name= a
+	1: =
+	1: NUM, var= 10
+	1: ;
+   2: 
+   3: a!#10;
+	3: ID, name= a
+	3: ERROR, No such token "!"
+	3: ERROR, No such token "#"
+	3: NUM, var= 10
+	3: ;
+   4: 
+   5: a=/*10**/=10;
+	5: ID, name= a
+	5: =
+	5: =
+	5: NUM, var= 10
+	5: ;
+   6: 
+   7: if(a>= 10) {
+	7: keyword: if
+	7: (
+	7: ID, name= a
+	7: >=
+	7: NUM, var= 10
+	7: )
+	7: {
+   8:     a = 10;
+	8: ID, name= a
+	8: =
+	8: NUM, var= 10
+	8: ;
+   9: }
+	9: }
+  10: 
+  11: aaa333=10;
+	11: ERROR, No such token "aaa333"
+	11: =
+	11: NUM, var= 10
+	11: ;
+  12: 333aaaa-10=10;
+	12: ERROR, No such token "333aaaa"
+	12: -
+	12: NUM, var= 10
+	12: =
+	12: NUM, var= 10
+	12: ;
+  13: 
+  14: /* 1  **/
+  15: 
+  16: aaa = 1;
+	16: ID, name= aaa
+	16: =
+	16: NUM, var= 1
+	16: ;
+	17: EOF
