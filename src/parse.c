@@ -90,7 +90,9 @@ static TreeNode *createNewNode(void) {
         t->lineno = lineno;
         t->arrayType = FALSE;
     }
+    return t;
 }
+
 TreeNode *declarationList(void) {
     TreeNode *t = declaration();
     TreeNode *p = t;
