@@ -1,21 +1,27 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "globals.h"
 #include "util.h"
 #include "scan.h"
+#include "parse.h"
 
 FILE *inputfile, *outputfile;
 int lineno = 0;
+int Error = FALSE;
+int PrintScan = FALSE;
 
 int main(int argc, const char * argv[]) {
-    TokenType result;
+    TreeNode *tree;
+
     // open inputfile & outputfile
     inputfile = fopen(argv[1], "r");
     outputfile = fopen(argv[2], "w");
-    
-    while((result = getToken()) != ENDFILE) {
-        // keep getting token until EOF
+
+    // get syntax tree
+    tree = parse();
+    if(tree != NULL) {
+        fprintf(outputfile, "<<Syntax Tree>>\n");
+        printTree(tree);
     }
+
     // close inputfile & outputfile
     fclose(inputfile);
     fclose(outputfile);

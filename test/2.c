@@ -2,6 +2,8 @@
    element array. */
 
 int x[10];
+int y[10];
+int z;
 
 int minloc ( int a[], int low, int high )
 {	int i; int x; int k;

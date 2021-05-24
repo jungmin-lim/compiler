@@ -46,7 +46,9 @@ static int getNextChar(void) {
     if(!(linepos < bufsize)) {
         lineno++;
         if(fgets(lineBuf, BUFLEN-1, inputfile)) {
-            fprintf(outputfile, "%4d: %s", lineno, lineBuf);
+            if(PrintScan) {
+                fprintf(outputfile, "%4d: %s", lineno, lineBuf);
+            }
             bufsize = strlen(lineBuf);
             // for some OS that takes newline other than \n
             lineBuf[bufsize-2] = '\n';
@@ -353,8 +355,10 @@ TokenType getToken(void) {
     }
 
     // report scanned token
-    fprintf(outputfile, "\t%d: ", lineno);
-    printToken(currentToken, tokenString);
+    if(PrintScan) {
+        fprintf(outputfile, "\t%d: ", lineno);
+        printToken(currentToken, tokenString);
+    }
 
     return currentToken;
 }
